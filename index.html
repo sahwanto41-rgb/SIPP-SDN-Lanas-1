@@ -108,6 +108,8 @@ header>span{flex:1}header b{color:#fff;font-size:15px;max-width:none;white-space
 .row[style*="align-items:end"]{display:grid;grid-template-columns:72px 1fr 1fr;gap:8px;align-items:center!important}.row[style*="align-items:end"]>*{min-width:0}.row[style*="align-items:end"] input{margin:0}
 #mb::before{content:"";display:block;width:42px;height:4px;border-radius:4px;background:var(--bd);margin:-6px auto 14px}
 }
+#sy{display:none}.spin{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+@media(max-width:640px){#sy{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.18);font-size:18px;cursor:pointer}}
 </style></head><body>
 <div id="toasts"></div><div id="mod"><div id="mb"></div></div>
 <section id="login"><div class="card"><div class="logo">🏫</div><h2 style="margin:0">SIPP</h2><div style="font-weight:600">Sistem Informasi Presensi Pegawai</div><div style="color:var(--mu);margin-bottom:18px">UPTD SPF SD Negeri Lanas 1<br>Kec. Botolinggo, Kab. Bondowoso</div>
@@ -118,7 +120,7 @@ header>span{flex:1}header b{color:#fff;font-size:15px;max-width:none;white-space
 </div></section>
 <div id="app">
 <aside><div class="brand" style="font-weight:700;font-size:18px;padding:6px 8px 16px">🏫 <span>SIPP</span></div><div id="dp"></div><div id="nav"></div><div class="nav" onclick="syncNow()">🔄<span class="t">Sinkron Data</span></div><div class="nav" onclick="logout()">🚪<span class="t">Keluar</span></div></aside><div id="ov" onclick="drawer(false)"></div>
-<header><span><button id="hb" onclick="drawer()" aria-label="Menu">☰</button><b>SIPP UPTD SPF SD Negeri Lanas 1</b></span><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span id="clk" style="font-size:12px;color:var(--mu)"></span><span id="bell" style="cursor:pointer;position:relative">🔔</span><span id="av" onclick="drawer(true)"></span><span class="hu" style="text-align:right;line-height:1.2"><b id="un"></b><br><small id="ur" style="color:var(--mu)"></small></span><button class="btn s o hm" onclick="syncNow()">🔄 Sinkron</button><button class="btn s r hm" onclick="logout()">Keluar</button></div></header>
+<header><span><button id="hb" onclick="drawer()" aria-label="Menu">☰</button><b>SIPP UPTD SPF SD Negeri Lanas 1</b></span><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span id="clk" style="font-size:12px;color:var(--mu)"></span><span id="bell" style="cursor:pointer;position:relative">🔔</span><span id="sy" onclick="syncNow()" title="Sinkron">🔄</span><span id="av" onclick="acct()"></span><span class="hu" style="text-align:right;line-height:1.2"><b id="un"></b><br><small id="ur" style="color:var(--mu)"></small></span><button class="btn s o hm" onclick="syncNow()">🔄 Sinkron</button><button class="btn s r hm" onclick="logout()">Keluar</button></div></header>
 <main id="mn"></main><nav id="bn"></nav></div>
 <div id="docwrap"></div>
 <script>
@@ -531,7 +533,7 @@ const go0=go;go=function(v){drawer(false);return go0(v)};
 const lo0=logout;logout=function(){drawer(false);lo0()};
 
 // ================= NAVIGASI HP: PROFIL DRAWER + MENU BAWAH =================
-const bn0=buildNav;buildNav=function(){bn0();const B={ADMIN:[['dash','🏠','Beranda'],['rekap','📋','Rekap'],['scan','📷','Scan'],['lap','📑','Laporan'],['menu']],'KEPALA SEKOLAH':[['dash','🏠','Beranda'],['rekap','📋','Rekap'],['leave','📝','Izin'],['lap','📑','Laporan'],['menu']],OPERATOR:[['dash','🏠','Beranda'],['emp','👥','GTK'],['doc','📁','Dokumen'],['lap','📑','Laporan'],['menu']],PEGAWAI:[['prof','🏠','Beranda'],['rekap','📋','Riwayat'],['scan','📷','Scan'],['leave','📝','Izin/Cuti'],['menu']]}[ME.role];
+const bn0=buildNav;buildNav=function(){bn0();const B={ADMIN:[['dash','🏠','Beranda'],['rekap','📋','Rekap'],['scan','📷','Scan'],['emp','👥','GTK'],['lap','📑','Laporan']],'KEPALA SEKOLAH':[['dash','🏠','Beranda'],['rekap','📋','Rekap'],['leave','📝','Izin'],['lap','📑','Laporan']],OPERATOR:[['dash','🏠','Beranda'],['emp','👥','GTK'],['doc','📁','Dokumen'],['leave','📝','Izin'],['lap','📑','Laporan']],PEGAWAI:[['prof','🏠','Beranda'],['rekap','📋','Riwayat'],['scan','📷','Scan'],['leave','📝','Izin/Cuti'],['dl','🚗','Dinas Luar']]}[ME.role];
 $('#bn').innerHTML=B.map(([k,i,t])=>k=='menu'?'<div onclick="drawer(true)"><i>☰</i>Menu</div>':`<div data-k="${k}" class="${k=='scan'?'sc':''}" onclick="go('${k}')"><i>${i}</i>${k=='scan'?'':t}</div>`).join('');
 const ini=esc((ME.name||'?').trim().charAt(0).toUpperCase());$('#av').textContent=ini;$('#dp').innerHTML=`<div class="avc">${ini}</div><div><b>${esc(ME.name)}</b><br><small>${esc(ME.role)}</small></div>`};
 
@@ -542,6 +544,18 @@ c.innerHTML=`<div class="cnt">${L.length} data GTK — ketuk kartu untuk aksi</d
 function empAct(n){const e=emp(n),A=(ic,t,fn,c)=>`<button class="act ${c||''}" onclick="closeM();${fn}">${ic}<span>${t}</span></button>`;
 modal(`<h3 style="margin-bottom:2px">${esc(e.name)}</h3><div style="color:var(--mu);font-size:12px;margin-bottom:14px">${e.nip} · ${esc(e.jab)}</div>${A('✏️','Edit data GTK',`empForm('${n}')`)}${A('📁','Dokumen pegawai',`window._dn='${n}';go('doc')`)}${A('🔑','Reset sandi',`resetPw('${n}')`)}${A('🙂','Reset data wajah',`resetFace('${n}')`)}${A(e.active?'⛔':'✅',e.active?'Nonaktifkan pegawai':'Aktifkan pegawai',`toggleEmp('${n}')`,e.active?'r':'')}<button class="btn o" style="width:100%;margin-top:4px" onclick="closeM()">Tutup</button>`)}
 new MutationObserver(()=>document.querySelectorAll('#mn .tw td:not(.nil)').forEach(t=>{if(t.textContent.trim()=='-')t.classList.add('nil')})).observe($('#mn'),{childList:true,subtree:true});
+
+// ================= STATUS & TOMBOL SINKRON =================
+const setLast=k=>{localStorage.setItem('sipp_last_'+k,Date.now());document.querySelectorAll('.syst').forEach(e=>e.innerHTML=syncText())};
+function syncText(){if(!DB.cfg.sheetUrl)return'⚪ Belum terhubung ke Google Sheets<br><small>Atur URL di menu Google Sheets atau buka tautan konfigurasi dari Admin.</small>';const f=k=>{const t=+localStorage.getItem('sipp_last_'+k);return t?new Date(t).toLocaleString('id',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'belum pernah'};return`🟢 Terhubung ke Google Sheets<br>Terakhir kirim: <b>${f('push')}</b><br>Terakhir ambil: <b>${f('pull')}</b>`}
+const su0=syncUp;syncUp=async function(f){const w=busy,r=await su0(f);if(r&&!w&&ME&&DB.cfg.sheetUrl)setLast('push');return r};
+const pl0=pull;pull=async function(){const r=await pl0();if(r)setLast('pull');return r};
+const ap0=applyPull;applyPull=function(r){ap0(r);setLast('pull')};
+const sn0=syncNow;syncNow=async function(){const e=$('#sy');e&&e.classList.add('spin');try{await sn0()}finally{e&&e.classList.remove('spin')}};
+function acct(){modal(`<h3 style="margin-bottom:2px">${esc(ME.name)}</h3><div style="color:var(--mu);font-size:12px;margin-bottom:12px">${esc(ME.role)} · ${esc(ME.u)}</div><div class="syst" style="background:var(--bg);border-radius:14px;padding:12px;font-size:13px;line-height:1.7;margin-bottom:12px">${syncText()}</div><button class="act" onclick="closeM();syncNow()">🔄<span>Sinkron sekarang (kirim &amp; ambil)</span></button><button class="act" onclick="closeM();go('prof')">🔑<span>Profil &amp; ubah password</span></button><button class="act r" onclick="closeM();logout()">🚪<span>Keluar</span></button><button class="btn o" style="width:100%;margin-top:4px" onclick="closeM()">Tutup</button>`)}
+function doKirim(){if(!DB.cfg.sheetUrl)return toast('URL Google Sheets belum diatur','er');ask('Kirim data GTK, akun, dan pengaturan dari perangkat ini ke Google Sheets? Data GTK di Sheets akan diganti dengan data perangkat ini.',async()=>{toast('Mengirim data...');const ok=await syncUp(1);toast(ok?'Data berhasil dikirim ke Google Sheets':'Gagal mengirim. Cek koneksi/URL/kode Apps Script.',ok?'ok':'er')})}
+function doAmbil(){if(!DB.cfg.sheetUrl)return toast('URL Google Sheets belum diatur','er');ask('Ambil data terbaru dari Google Sheets? Data GTK di perangkat ini akan diperbarui sesuai Sheets.',async()=>{toast('Mengambil data...');const ok=await syncUp()&&await pull();if(ok){go(view);toast('Data GTK terbaru berhasil diambil','ok')}else toast('Gagal mengambil data. Cek koneksi/URL.','er')})}
+const ve0=vEmp;vEmp=function(){ve0();$('#mn h2').insertAdjacentHTML('afterend',`<div class="card"><h3>🔄 Sinkronisasi Data GTK</h3><div class="syst" style="font-size:13px;line-height:1.7;margin-bottom:10px">${syncText()}</div><div class="row bt"><button class="btn g" onclick="doKirim()">⬆ Kirim ke Sheets</button><button class="btn o" onclick="doAmbil()">⬇ Ambil dari Sheets</button></div><p style="font-size:12px;color:var(--mu);margin:10px 0 0"><b>Kirim</b> mengunggah data perangkat ini. <b>Ambil</b> mengunduh data terbaru dari Sheets, dipakai saat aplikasi dibuka di perangkat lain. Perubahan juga terkirim otomatis beberapa detik setelah disimpan.</p></div>`)};
 
 init();
 </script></body></html>
