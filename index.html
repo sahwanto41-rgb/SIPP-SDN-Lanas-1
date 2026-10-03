@@ -70,6 +70,31 @@ header{padding:8px 12px;gap:6px}header b{font-size:13px;max-width:55%}#clk{displ
 .tw td:last-child{border-bottom:0}.tw td::before{content:attr(data-l);color:var(--mu);font-weight:600;font-size:11px;text-align:left;flex:0 0 38%}
 .tw td[data-l=""]{justify-content:flex-start;flex-wrap:wrap}.tw td[data-l=""]::before,.tw td[colspan]::before{content:none}.tw td[colspan]{justify-content:center}.tw td:empty{display:none}
 }
+#hb,#ov{display:none}
+@media(max-width:640px){
+#hb{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;padding:0;border:0;border-radius:12px;background:var(--bg);font-size:22px;cursor:pointer}
+aside{display:block;width:268px;z-index:30;padding-top:calc(18px + env(safe-area-inset-top,0px));transform:translateX(-105%);transition:transform .25s ease;box-shadow:6px 0 28px rgba(0,0,0,.35)}
+aside .t,aside .brand span{display:inline}aside .nav{padding:14px;font-size:15px}
+body.dr aside{transform:none}body.dr #ov{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:25}
+header>span{display:flex;align-items:center;gap:8px;min-width:0}
+}
+#dp,#av{display:none}
+@media(max-width:900px){
+header,main{margin-left:0}
+#hb{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;padding:0;border:0;border-radius:12px;background:var(--bg);font-size:22px;cursor:pointer}
+aside{display:block;width:276px;z-index:30;padding:calc(16px + env(safe-area-inset-top,0px)) 12px 20px;transform:translateX(-105%);transition:transform .25s ease;box-shadow:6px 0 28px rgba(0,0,0,.35)}
+aside .t,aside .brand span{display:inline}aside .nav{padding:13px 14px;font-size:15px;border-radius:14px}aside .nav.on{background:rgba(255,255,255,.22);color:#fff;font-weight:600}
+body.dr aside{transform:none}body.dr{overflow:hidden}body.dr #ov{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:25}
+#dp{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.12);border-radius:16px;padding:12px;margin:0 0 14px;line-height:1.3}#dp small{opacity:.8}
+.avc{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border-radius:50%;background:#fff;color:var(--pr2);font-weight:700;font-size:18px}
+}
+@media(max-width:640px){
+header{background:linear-gradient(135deg,var(--pr2),var(--pr));color:#fff;box-shadow:0 2px 12px rgba(15,31,61,.25)}
+header>span{flex:1}header b{color:#fff;font-size:15px;max-width:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hb{background:rgba(255,255,255,.18);color:#fff}header .hm,header .hu{display:none!important}header>div{gap:12px}#bell{font-size:22px}
+#av{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#fff;color:var(--pr2);font-weight:700;cursor:pointer}
+#bn{border-radius:20px 20px 0 0}#bn div.on:not(.sc) i{width:58px;margin:0 auto;background:rgba(29,78,216,.13);border-radius:14px}
+}
 </style></head><body>
 <div id="toasts"></div><div id="mod"><div id="mb"></div></div>
 <section id="login"><div class="card"><div class="logo">🏫</div><h2 style="margin:0">SIPP</h2><div style="font-weight:600">Sistem Informasi Presensi Pegawai</div><div style="color:var(--mu);margin-bottom:18px">UPTD SPF SD Negeri Lanas 1<br>Kec. Botolinggo, Kab. Bondowoso</div>
@@ -79,8 +104,8 @@ header{padding:8px 12px;gap:6px}header b{font-size:13px;max-width:55%}#clk{displ
 <p style="font-size:11px;color:var(--mu)">🔒 Sesi otomatis berakhir setelah 15 menit tidak aktif. Password disimpan sebagai hash SHA-256. Aktivitas dicatat pada audit log.</p>
 </div></section>
 <div id="app">
-<aside><div class="brand" style="font-weight:700;font-size:18px;padding:6px 8px 16px">🏫 <span>SIPP</span></div><div id="nav"></div></aside>
-<header><b>SIPP UPTD SPF SD Negeri Lanas 1</b><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span id="clk" style="font-size:12px;color:var(--mu)"></span><span id="bell" style="cursor:pointer;position:relative">🔔</span><span style="text-align:right;line-height:1.2"><b id="un"></b><br><small id="ur" style="color:var(--mu)"></small></span><button class="btn s o" onclick="syncNow()">🔄 Sinkron</button><button class="btn s r" onclick="logout()">Keluar</button></div></header>
+<aside><div class="brand" style="font-weight:700;font-size:18px;padding:6px 8px 16px">🏫 <span>SIPP</span></div><div id="dp"></div><div id="nav"></div><div class="nav" onclick="syncNow()">🔄<span class="t">Sinkron Data</span></div><div class="nav" onclick="logout()">🚪<span class="t">Keluar</span></div></aside><div id="ov" onclick="drawer(false)"></div>
+<header><span><button id="hb" onclick="drawer()" aria-label="Menu">☰</button><b>SIPP UPTD SPF SD Negeri Lanas 1</b></span><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span id="clk" style="font-size:12px;color:var(--mu)"></span><span id="bell" style="cursor:pointer;position:relative">🔔</span><span id="av" onclick="drawer(true)"></span><span class="hu" style="text-align:right;line-height:1.2"><b id="un"></b><br><small id="ur" style="color:var(--mu)"></small></span><button class="btn s o hm" onclick="syncNow()">🔄 Sinkron</button><button class="btn s r hm" onclick="logout()">Keluar</button></div></header>
 <main id="mn"></main><nav id="bn"></nav></div>
 <div id="docwrap"></div>
 <script>
@@ -486,6 +511,16 @@ const lab=()=>document.querySelectorAll('#mn .tw table').forEach(t=>{if(t.datase
 new MutationObserver(lab).observe($('#mn'),{childList:true,subtree:true});
 const vProf0=vProf;vProf=function(){vProf0();if(ME.role!='PEGAWAI')return;const n=new Date(),a=DB.att.find(x=>x.nip==ME.u&&x.d==ymd(n)),sc=sched(n),st=dayStat(ME.u,n),b=(l,v)=>`<div style="background:rgba(255,255,255,.16);border-radius:14px;padding:10px"><small style="opacity:.85">${l}</small><br><b style="font-size:17px">${v}</b></div>`;
 $('#mn').insertAdjacentHTML('afterbegin',`<div class="card" style="background:linear-gradient(135deg,var(--pr2),var(--pr));color:#fff"><div style="opacity:.85;font-size:12px">${DAYS[n.getDay()]}, ${n.getDate()} ${MON[n.getMonth()]} ${n.getFullYear()}</div><div style="font-size:20px;font-weight:600;margin:2px 0 12px">Halo, ${esc(ME.name.split(' ')[0])} 👋</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${b('MASUK',a?.in?.slice(0,5)||'--:--')}${b('PULANG',a?.out?.slice(0,5)||'--:--')}${b('JADWAL',sc?sc[0].slice(0,5)+'–'+sc[1].slice(0,5):'Libur')}</div><div style="margin:10px 0 0">Status hari ini: <span class="badge ${st[1]}">${st[0]}</span></div><button class="btn g" style="width:100%;margin-top:12px;min-height:58px;font-size:17px" onclick="go('scan')">📷 SCAN WAJAH ABSEN</button></div>`)};
+
+// ================= MENU SAMPING (DRAWER) HP =================
+function drawer(f){document.body.classList.toggle('dr',f)}
+const go0=go;go=function(v){drawer(false);return go0(v)};
+const lo0=logout;logout=function(){drawer(false);lo0()};
+
+// ================= NAVIGASI HP: PROFIL DRAWER + MENU BAWAH =================
+const bn0=buildNav;buildNav=function(){bn0();const B={ADMIN:[['dash','🏠','Beranda'],['rekap','📋','Rekap'],['scan','📷','Scan'],['lap','📑','Laporan'],['menu']],'KEPALA SEKOLAH':[['dash','🏠','Beranda'],['rekap','📋','Rekap'],['leave','📝','Izin'],['lap','📑','Laporan'],['menu']],OPERATOR:[['dash','🏠','Beranda'],['emp','👥','GTK'],['doc','📁','Dokumen'],['lap','📑','Laporan'],['menu']],PEGAWAI:[['prof','🏠','Beranda'],['rekap','📋','Riwayat'],['scan','📷','Scan'],['leave','📝','Izin/Cuti'],['menu']]}[ME.role];
+$('#bn').innerHTML=B.map(([k,i,t])=>k=='menu'?'<div onclick="drawer(true)"><i>☰</i>Menu</div>':`<div data-k="${k}" class="${k=='scan'?'sc':''}" onclick="go('${k}')"><i>${i}</i>${k=='scan'?'':t}</div>`).join('');
+const ini=esc((ME.name||'?').trim().charAt(0).toUpperCase());$('#av').textContent=ini;$('#dp').innerHTML=`<div class="avc">${ini}</div><div><b>${esc(ME.name)}</b><br><small>${esc(ME.role)}</small></div>`};
 
 init();
 </script></body></html>
