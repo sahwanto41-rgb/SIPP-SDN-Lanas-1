@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8"><title>SIPP UPTD SPF SD Negeri Lanas 1</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e3a8a"><meta name="mobile-web-app-capable" content="yes"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f1f5fb;--card:#fff;--tx:#0f1f3d;--mu:#64748b;--pr:#1d4ed8;--pr2:#1e3a8a;--ok:#16a34a;--wa:#f59e0b;--er:#dc2626;--bd:#e2e8f0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
@@ -52,6 +52,24 @@ main{margin-left:230px;padding:22px}
 #doc .kt{page-break-inside:avoid}#doc .kt th,#doc .kt td{border:1px solid #ddd;padding:5px 8px;font-size:10px;text-align:left}#doc .kt th{background:#f1f1f1;font-weight:normal}
 #doc .rp th,#doc .rp td{border:1px solid #000;padding:3px 5px;font-size:10px;text-align:left;white-space:normal}#doc .rp th{background:#eee}#doc .rp tr{page-break-inside:avoid}
 @media print{@page{size:A4 portrait;margin:12mm 10mm}#doc,#doc *{-webkit-print-color-adjust:exact;print-color-adjust:exact}body.pr{background:#fff!important}body.pr #app,body.pr #toasts,body.pr #mod{display:none!important}body.pr #docwrap{display:block!important}#doc{padding:0;width:auto}.pb{page-break-after:always}}
+@media(max-width:640px){
+body{font-size:15px;-webkit-tap-highlight-color:transparent}button{touch-action:manipulation}
+.btn{min-height:48px;padding:12px 16px;font-size:15px;border-radius:14px}.btn.s{min-height:40px;padding:8px 12px;font-size:13px}
+input,select,textarea{font-size:16px;min-height:48px;border-radius:14px}textarea{min-height:84px}input[type=checkbox]{min-height:0;width:22px!important;height:22px}
+h2{font-size:18px;margin-bottom:10px}.card{padding:16px;border-radius:18px}
+.row>*{flex:1 1 100%;min-width:0}.grid{grid-template-columns:repeat(2,1fr)}.stat b{font-size:24px}
+header{padding:8px 12px;gap:6px}header b{font-size:13px;max-width:55%}#clk{display:none}header .btn.s{min-height:36px;padding:6px 10px}
+#bn div{min-width:58px;padding:6px 6px;font-size:11px;font-weight:500}#bn div i{font-size:23px}
+#mod{place-items:end stretch;padding:0}#mod>div{max-width:none;border-radius:22px 22px 0 0;max-height:90vh;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+#toasts{left:10px;right:10px;top:calc(8px + env(safe-area-inset-top,0px))}.toast{max-width:none;font-size:14px}
+.cam{max-width:none;max-height:56vh;border-radius:18px}#sb{width:100%;min-height:58px;font-size:17px!important;padding:14px!important}
+.res{font-size:15px;line-height:1.8}.res.no b{font-size:16px}
+.tw table,.tw tbody{display:block;width:100%}
+.tw tr{display:block;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:6px 12px;margin-bottom:10px}.tw tr.hd{display:none}
+.tw td{display:flex;justify-content:space-between;align-items:center;gap:12px;border:0;border-bottom:1px dashed var(--bd);padding:6px 0;white-space:normal;text-align:right;font-size:13.5px;word-break:break-word}
+.tw td:last-child{border-bottom:0}.tw td::before{content:attr(data-l);color:var(--mu);font-weight:600;font-size:11px;text-align:left;flex:0 0 38%}
+.tw td[data-l=""]{justify-content:flex-start;flex-wrap:wrap}.tw td[data-l=""]::before,.tw td[colspan]::before{content:none}.tw td[colspan]{justify-content:center}.tw td:empty{display:none}
+}
 </style></head><body>
 <div id="toasts"></div><div id="mod"><div id="mb"></div></div>
 <section id="login"><div class="card"><div class="logo">🏫</div><h2 style="margin:0">SIPP</h2><div style="font-weight:600">Sistem Informasi Presensi Pegawai</div><div style="color:var(--mu);margin-bottom:18px">UPTD SPF SD Negeri Lanas 1<br>Kec. Botolinggo, Kab. Bondowoso</div>
@@ -81,7 +99,7 @@ if(!DB){DB={users:[{u:'admin',h:await sha('admin123'),role:'ADMIN',name:'Adminis
 emp:[{nip:'198904182025212120',name:'ANIK NURWIDIASTUTIK',jab:'GURU AHLI PERTAMA',st:'PPPK',hp:'',active:1,faces:[]},{nip:'198111142008011012',name:'Sahwanto',jab:'KEPALA SEKOLAH',st:'PNS',hp:'',active:1,faces:[]}],att:[],leave:[],audit:[],locLog:[],notif:[],
 cfg:{school:'UPTD SPF SD Negeri Lanas 1',addr:'Kec. Botolinggo, Kab. Bondowoso',lat:-7.9,lng:113.9,rad:100,locked:0,late:0,sim:0,head:'Sahwanto',headNip:'198111142008011012',holidays:[],
 sched:{1:['07:00:00','14:15:00'],2:['07:00:00','14:15:00'],3:['07:00:00','14:15:00'],4:['07:00:00','14:15:00'],5:['07:00:00','11:30:00'],6:['07:00:00','14:00:00'],0:null}}};save()}}
-function toast(m,t=''){const e=document.createElement('div');e.className='toast '+t;e.textContent=m;$('#toasts').append(e);setTimeout(()=>e.remove(),4000)}
+function toast(m,t=''){navigator.vibrate?.(t=='er'?[80,40,80]:40);const e=document.createElement('div');e.className='toast '+t;e.textContent=m;$('#toasts').append(e);setTimeout(()=>e.remove(),4000)}
 function log(a){DB.audit.push({t:new Date().toISOString(),u:ME?.name||'-',a});save()}
 function modal(h){$('#mb').innerHTML=h;$('#mod').style.display='grid'}function closeM(){$('#mod').style.display='none';stopCam()}
 function ask(msg,fn){window._fn=fn;modal(`<h3>Konfirmasi</h3><p>${msg}</p><div class="row"><button class="btn o" onclick="closeM()">Batal</button><button class="btn" onclick="closeM();_fn()">Ya, lanjutkan</button></div>`)}
@@ -98,7 +116,7 @@ const notif=m=>{DB.notif.push(new Date().toLocaleTimeString('id')+' — '+m);sav
 const MENU={ADMIN:[['dash','📊','Dashboard'],['scan','📷','Scan Wajah'],['emp','👥','Data GTK'],['doc','📁','Dokumen'],['lap','📑','Laporan'],['kor','✏','Koreksi Absensi'],['rekap','📋','Rekap'],['leave','📝','Izin/Cuti'],['dl','🚗','Dinas Luar'],['print','🖨','Cetak Daftar Hadir'],['loc','📍','Lokasi Absensi'],['sched','🗓','Jadwal'],['sheets','📊','Google Sheets'],['set','⚙','Pengaturan']],
 'KEPALA SEKOLAH':[['dash','📊','Dashboard'],['rekap','📋','Rekap'],['leave','📝','Verifikasi Izin'],['lap','📑','Laporan'],['print','🖨','Cetak Daftar Hadir'],['prof','👤','Profil']],OPERATOR:[['dash','📊','Dashboard'],['emp','👥','Data GTK'],['doc','📁','Dokumen'],['lap','📑','Laporan'],['leave','📝','Input Izin/Cuti'],['dl','🚗','Dinas Luar'],['kor','✏','Koreksi Absensi'],['rekap','📋','Rekap'],['print','🖨','Cetak Daftar Hadir'],['prof','👤','Profil']],PEGAWAI:[['scan','📷','Scan Wajah'],['dl','🚗','Dinas Luar'],['rekap','📋','Riwayat'],['leave','📝','Pengajuan'],['prof','👤','Profil']]};
 function buildNav(){const m=MENU[ME.role];$('#nav').innerHTML=m.map(([k,i,t])=>`<div class="nav" data-k="${k}" onclick="go('${k}')">${i}<span class="t">${t}</span></div>`).join('');
-const b=ME.role=='OPERATOR'?[['dash','🏠','Beranda'],['emp','👥','GTK'],['doc','📁','Dokumen'],['lap','📑','Laporan'],['prof','👤','Profil']]:ME.role=='PEGAWAI'?[['dash','🏠','Beranda'],['scan','📷','Scan'],['rekap','📋','Riwayat'],['dl','🚗','Dinas Luar'],['prof','👤','Profil']]:[['dash','🏠','Beranda'],['scan','📷','Scan'],['rekap','📋','Riwayat'],['prof','👤','Profil']];
+const b=ME.role=='OPERATOR'?[['dash','🏠','Beranda'],['emp','👥','GTK'],['doc','📁','Dokumen'],['lap','📑','Laporan'],['prof','👤','Profil']]:ME.role=='PEGAWAI'?[['prof','🏠','Beranda'],['rekap','📋','Riwayat'],['scan','📷','Scan'],['leave','📝','Izin/Cuti'],['dl','🚗','Dinas Luar']]:[['dash','🏠','Beranda'],['scan','📷','Scan'],['rekap','📋','Riwayat'],['prof','👤','Profil']];
 $('#bn').innerHTML=b.map(([k,i,t])=>`<div data-k="${k}" class="${k=='scan'?'sc':''}" onclick="go('${k}')"><i>${i}</i>${k=='scan'?'':t}</div>`).join('')}
 function go(v){if(v=='dash'&&ME.role=='PEGAWAI')v='prof';if(ME.role=='OPERATOR'&&v=='scan')v='dash';if(ME.role=='PEGAWAI'&&meEmp()&&!meEmp().faces.length&&v!='regface'){if(v!='scan')toast('Daftarkan wajah Anda terlebih dahulu','er');v='regface'}if(v=='scan'&&ME.role=='KEPALA SEKOLAH'){toast('Menu scan khusus pegawai','er');v='dash'}stopCam();view=v;document.querySelectorAll('[data-k]').forEach(e=>e.classList.toggle('on',e.dataset.k==v));
 $('#mn').innerHTML='';({dl:vDL,dash:ME.role=='OPERATOR'?vDashOp:vDash,doc:vDoc,lap:vLap,kor:vKor,scan:vScan,emp:vEmp,rekap:vRekap,leave:vLeave,print:vPrint,loc:vLoc,sched:vSched,sheets:vSheets,regface:vRegFace,set:vSet,prof:vProf})[v]();scrollTo(0,0)}
@@ -462,6 +480,12 @@ if(adm){const M=MT();for(const t in M)if(D[t].length)S['_'+t]=hs(JSON.stringify(
 localStorage.setItem('sipp_syn',JSON.stringify(S));save()}
 async function syncNow(){if(!DB.cfg.sheetUrl)return toast('URL Google Sheets belum diatur (menu Google Sheets)','er');toast('Menyinkronkan...');if(await syncUp()&&await pull()){go(view);toast('Sinkron selesai','ok')}else toast('Sinkronisasi gagal. Cek koneksi, URL, atau perbarui kode Apps Script.','er')}
 setInterval(()=>{ME&&syncUp()},120000);
+
+// ================= TAMPILAN HP =================
+const lab=()=>document.querySelectorAll('#mn .tw table').forEach(t=>{if(t.dataset.l)return;const h=[...t.querySelectorAll('tr')].find(r=>r.querySelector('th'));if(!h)return;const L=[...h.children].map(c=>c.textContent.trim());t.querySelectorAll('tr').forEach(r=>{if(r.querySelector('th')){r.classList.add('hd');return}[...r.children].forEach((c,i)=>c.dataset.l=L[i]||'')});t.dataset.l=1});
+new MutationObserver(lab).observe($('#mn'),{childList:true,subtree:true});
+const vProf0=vProf;vProf=function(){vProf0();if(ME.role!='PEGAWAI')return;const n=new Date(),a=DB.att.find(x=>x.nip==ME.u&&x.d==ymd(n)),sc=sched(n),st=dayStat(ME.u,n),b=(l,v)=>`<div style="background:rgba(255,255,255,.16);border-radius:14px;padding:10px"><small style="opacity:.85">${l}</small><br><b style="font-size:17px">${v}</b></div>`;
+$('#mn').insertAdjacentHTML('afterbegin',`<div class="card" style="background:linear-gradient(135deg,var(--pr2),var(--pr));color:#fff"><div style="opacity:.85;font-size:12px">${DAYS[n.getDay()]}, ${n.getDate()} ${MON[n.getMonth()]} ${n.getFullYear()}</div><div style="font-size:20px;font-weight:600;margin:2px 0 12px">Halo, ${esc(ME.name.split(' ')[0])} 👋</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${b('MASUK',a?.in?.slice(0,5)||'--:--')}${b('PULANG',a?.out?.slice(0,5)||'--:--')}${b('JADWAL',sc?sc[0].slice(0,5)+'–'+sc[1].slice(0,5):'Libur')}</div><div style="margin:10px 0 0">Status hari ini: <span class="badge ${st[1]}">${st[0]}</span></div><button class="btn g" style="width:100%;margin-top:12px;min-height:58px;font-size:17px" onclick="go('scan')">📷 SCAN WAJAH ABSEN</button></div>`)};
 
 init();
 </script></body></html>
