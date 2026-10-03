@@ -129,6 +129,7 @@ const CODES={S1:'Sakit 1 Hari Kerja',CS:'Cuti Sakit',C1:'Cuti Alasan Penting/Tah
 const TYPES={I:'Izin',S1:'Sakit',CS:'Cuti Sakit',C1:'Cuti Tahunan',C2:'Cuti Melahirkan',C3:'Cuti Besar',D3:'Dinas Luar Dalam Kota',DL:'Dinas Luar Luar Kota',DKT:'Diklat',FM:'Force Majeure',TK:'Tanpa Keterangan'};
 const sha=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('');
 const pad=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),hm=d=>pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+const EMB={url:'https://script.google.com/macros/s/AKfycbzT8VLzyOYRVuNUKdgBLKKqLPTIjgQpDyIWcvfB4OmLFD89rc3qOU2f1UU8hnQnuFArsA/exec',lat:-7.874913,lng:114.0059,rad:20};
 const DEV=(()=>{let d=localStorage.getItem('sipp_dev');if(!d){d=(crypto.randomUUID?crypto.randomUUID():'d'+Date.now()+Math.random().toString(36).slice(2));localStorage.setItem('sipp_dev',d)}return d})();
 const rep=(k,v)=>k=='faces'?undefined:v,hs=s=>{let h=5381;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return h+':'+s.length};
 let DB,ME,view='dash',stream,last=Date.now();
@@ -240,7 +241,10 @@ function vSet(){const c=DB.cfg;$('#mn').innerHTML=`<h2>Pengaturan Sistem</h2><di
 ${pwCard()}<div class="card"><h3>Backup Data</h3><button class="btn o" onclick="dl('sipp-backup.json',JSON.stringify(DB,rep),'application/json')">Unduh Backup</button></div>`}
 function saveSet(){Object.assign(DB.cfg,{school:c1.value,addr:c2.value,head:c3.value,headNip:c4.value,late:+c5.value,atasan:c9.value,atasanNip:c10.value,atasanJab:c11.value,holidays:c6.value.split(',').map(s=>s.trim()).filter(Boolean),sim:c7.checked?1:0});log('Ubah pengaturan');save();toast('Pengaturan disimpan','ok')}
 const pwCard=()=>`<div class="card"><h3>🔑 Ubah Password</h3><label>Password lama</label><input id="pw0" type="password"><label>Password baru (min. 6 karakter)</label><input id="pw1" type="password"><label>Ulangi password baru</label><input id="pw2" type="password"><button class="btn" onclick="chPw()">Simpan Password</button></div>`;
-async function init(){await init0();DB.docs=DB.docs||[];{const c=DB.cfg;if(c.sheetUrl&&!c.sheetLocked)c.sheetLocked=1;if(!c.locked&&(c.lat!==-7.9||c.lng!==113.9))c.locked=1;save()}
+async function init(){await init0();DB.docs=DB.docs||[];{const c=DB.cfg;if(!c.sheetUrl){c.sheetUrl=EMB.url;c.sheetLocked=1}
+if(!c.locked&&c.lat===-7.9&&c.lng===113.9){Object.assign(c,{lat:EMB.lat,lng:EMB.lng,rad:EMB.rad,locked:1});DB.locLog.push({t:new Date().toLocaleString('id'),u:'Konfigurasi bawaan aplikasi',lat:c.lat,lng:c.lng,rad:c.rad,note:'Titik lokasi bawaan aplikasi'})}
+if(c.locked&&c.lat===EMB.lat&&c.lng===EMB.lng&&c.rad===100&&EMB.rad!==100){c.rad=EMB.rad;DB.locLog.push({t:new Date().toLocaleString('id'),u:'Konfigurasi bawaan aplikasi',lat:c.lat,lng:c.lng,rad:c.rad,note:'Radius diubah 100 m menjadi '+EMB.rad+' m'})}
+if(c.sheetUrl&&!c.sheetLocked)c.sheetLocked=1;if(!c.locked&&(c.lat!==-7.9||c.lng!==113.9))c.locked=1;save()}
 try{const m=location.hash.match(/^#cfg=(.+)$/);if(m){const p=JSON.parse(atob(decodeURIComponent(m[1])));if(!DB.cfg.locked&&isFinite(p.lat)&&isFinite(p.lng)&&p.rad>=10){Object.assign(DB.cfg,{lat:+p.lat,lng:+p.lng,rad:+p.rad,locked:1});if(/^https:\/\/script\.google\.com\/macros\/s\//.test(p.url||'')){DB.cfg.sheetUrl=p.url;DB.cfg.sheetLocked=1}DB.locLog.push({t:new Date().toLocaleString('id'),u:'Tautan konfigurasi',lat:p.lat,lng:p.lng,rad:p.rad,note:'Konfigurasi dipasang dari tautan'});save();toast('Konfigurasi sekolah terpasang & terkunci','ok')}else toast('Perangkat ini sudah terkunci; tautan konfigurasi diabaikan','er');history.replaceState(null,'',location.pathname+location.search)}}catch(e){}
 if(!DB.users.some(u=>u.role=='OPERATOR')){DB.users.push({u:'operator',h:await sha('operator123'),role:'OPERATOR',name:'Operator Sekolah'});save()}}
 async function chPw(){if(await sha(pw0.value)!=ME.h)return toast('Password lama salah','er');if(pw1.value.length<6)return toast('Password baru minimal 6 karakter','er');if(pw1.value!=pw2.value)return toast('Konfirmasi password tidak sama','er');ME.h=await sha(pw1.value);log('Ubah password');save();pw0.value=pw1.value=pw2.value='';toast('Password berhasil diubah','ok')}
@@ -515,7 +519,7 @@ DB.users=mg(DB.users,D.Akun,x=>x.u,adm);
 DB.emp=mg(DB.emp,D.GTK.map(x=>{x.active=x.active===''?1:+x.active;x.faces=F[x.nip]||[];if(x.dev&&x.dev!=DEV)x.faces=[];if(!x.dev&&x.faces.length&&R=='PEGAWAI'&&x.nip==r.user.u)x.dev=DEV;return x}),x=>x.nip,stf);
 DB.att=mr(DB.att,D.Presensi.map(nrm),x=>x.d+'|'+x.nip+'|','Presensi');
 DB.leave=mr(DB.leave,D.PengajuanIzin,x=>x.d+'|'+x.nip+'|'+x.type,'PengajuanIzin');
-D.Pengaturan.forEach(p=>{try{const v=JSON.parse(p.v);if(p.k=='cfg'){const{sheetUrl,sheetLocked,sim}=DB.cfg;Object.assign(DB.cfg,v,{sheetUrl,sheetLocked,sim})}else if(p.k=='locLog'&&stf)DB.locLog=v}catch(e){}});
+D.Pengaturan.forEach(p=>{try{const v=JSON.parse(p.v);if(p.k=='cfg'){if(v.lat===EMB.lat&&v.lng===EMB.lng&&v.rad===100)v.rad=EMB.rad;const{sheetUrl,sheetLocked,sim}=DB.cfg;Object.assign(DB.cfg,v,{sheetUrl,sheetLocked,sim},v.locked?{}:{lat:DB.cfg.lat,lng:DB.cfg.lng,rad:DB.cfg.rad,locked:DB.cfg.locked})}else if(p.k=='locLog'&&stf)DB.locLog=v}catch(e){}});
 if(adm){const M=MT();for(const t in M)if(D[t].length)S['_'+t]=hs(JSON.stringify(M[t],rep))}
 localStorage.setItem('sipp_syn',JSON.stringify(S));save()}
 async function syncNow(){if(!DB.cfg.sheetUrl)return toast('URL Google Sheets belum diatur (menu Google Sheets)','er');toast('Menyinkronkan...');if(await syncUp()&&await pull()){go(view);toast('Sinkron selesai','ok')}else toast('Sinkronisasi gagal. Cek koneksi, URL, atau perbarui kode Apps Script.','er')}
