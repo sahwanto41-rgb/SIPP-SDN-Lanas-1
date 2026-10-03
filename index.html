@@ -147,9 +147,9 @@ function ask(msg,fn){window._fn=fn;modal(`<h3>Konfirmasi</h3><p>${msg}</p><div c
 $('#lf').onsubmit=async e=>{e.preventDefault();const h=await sha(lp.value),un=lu.value.trim(),b=$('#lf button');
 if(DB.cfg.sheetUrl){b.disabled=true;b.textContent='Menghubungkan ke Google Sheets...';const r=await api('login',{u:un,h});b.disabled=false;b.textContent='MASUK';
 if(r&&r.err=='auth')return toast('Username/NIP atau password salah','er');
-if(r&&r.ok)applyPull(r);else if(!r)toast('Google Sheets tidak terjangkau — memakai data lokal perangkat','er')}
+if(r&&r.ok){applyPull(r);PULLED=1}else if(!r)toast('Google Sheets tidak terjangkau — memakai data lokal. Data TIDAK dikirim ke Sheets sebelum berhasil terhubung.','er')}
 const u=DB.users.find(x=>x.u==un&&x.h==h);if(!u)return toast('Username/NIP atau password salah','er');ME=u;log('Login');$('#login').style.display='none';$('#app').style.display='block';view=u.role=='PEGAWAI'?'scan':'dash';$('#un').textContent=u.name;$('#ur').textContent=u.role;buildNav();go(view)};
-function logout(){log('Logout');stopCam();ME=null;$('#app').style.display='none';$('#login').style.display='grid';lp.value=''}
+function logout(){log('Logout');stopCam();ME=null;PULLED=0;$('#app').style.display='none';$('#login').style.display='grid';lp.value=''}
 ['click','keydown','touchstart'].forEach(e=>addEventListener(e,()=>last=Date.now()));
 setInterval(()=>{const n=new Date();if($('#clk'))$('#clk').textContent=DAYS[n.getDay()]+', '+n.getDate()+' '+MON[n.getMonth()]+' '+n.getFullYear()+' '+hm(n);if(ME&&Date.now()-last>9e5){toast('Sesi berakhir');logout()}},1000);
 $('#bell').onclick=()=>modal(`<h3>Notifikasi</h3>${DB.notif.slice(-8).reverse().map(n=>`<p>• ${n}</p>`).join('')||'<p style="color:var(--mu)">Belum ada notifikasi.</p>'}<button class="btn" onclick="closeM()">Tutup</button>`);
@@ -192,7 +192,7 @@ if(!best||bs<.85)return fail('WAJAH TIDAK TERDAFTAR','Wajah tidak dikenali.');
 if(ME.role=='PEGAWAI'&&best.nip!=ME.u)return fail('WAJAH TIDAK SESUAI AKUN LOGIN');
 let c;try{c=await gps()}catch(e){return fail('GPS belum aktif','GPS belum aktif.')}
 const d=dist(DB.cfg.lat,DB.cfg.lng,c.latitude,c.longitude),ok=d<=DB.cfg.rad,dx=(c.longitude-DB.cfg.lng)*111320*Math.cos(DB.cfg.lat*Math.PI/180),dy=(c.latitude-DB.cfg.lat)*110574,m=mapSVG({x:dx,y:dy},DB.cfg.rad);
-const _dl=dlToday(best.nip);if(!ok&&!_dl){R.innerHTML=`<div class="res no"><b>🔴 ABSENSI DITOLAK — ANDA BERADA DI LUAR AREA ABSENSI</b><br>Jarak dari sekolah: ${Math.round(d)} m (radius ${DB.cfg.rad} m)</div>${m}`;toast('Anda berada di luar area absensi','er');notif('Anda berada di luar area absensi.');log('Absensi ditolak (luar radius) '+best.nip);b.disabled=false;b.textContent='📷 SCAN & ABSEN';return}
+const _dl=dlToday(best.nip);if(!ok&&!_dl){R.innerHTML=`<div class="res no"><b>🔴 ABSENSI DITOLAK</b><br><b style="font-size:17px">⚠️ Anda berada dalam area Red Zone</b><br>Anda berada di luar area absensi sekolah.<br>Jarak dari sekolah: ${Math.round(d)} m (radius ${DB.cfg.rad} m)</div>${m}`;toast('Anda berada dalam area Red Zone','er');notif('Anda berada dalam area Red Zone — di luar area absensi.');log('Absensi ditolak (Red Zone, luar radius) '+best.nip);b.disabled=false;b.textContent='📷 SCAN & ABSEN';return}
 const n=new Date(),s=ymd(n),sc=sched(n);let a=DB.att.find(x=>x.nip==best.nip&&x.d==s),jenis,st;const loc={lat:+c.latitude.toFixed(6),lng:+c.longitude.toFixed(6),acc:Math.round(c.accuracy),dist:Math.round(d),valid:1,ts:n.toISOString()};if(_dl){loc.dl=_dl.type;loc.out=ok?0:1}
 if(!a){let late=0;if(sc){const[h,mi,se]=sc[0].split(':').map(Number),lim=new Date(n);lim.setHours(h,mi+DB.cfg.late,se,0);late=n>lim&&!_dl?1:0}a={d:s,nip:best.nip,in:hm(n),inLoc:loc,late,dl:_dl?_dl.type:undefined};DB.att.push(a);jenis='MASUK';st=late?'TERLAMBAT':'TEPAT WAKTU';notif('Absensi masuk berhasil.')}
 else if(!a.out){a.out=hm(n);a.outLoc=loc;jenis='PULANG';const early=sc&&hm(n)<sc[1]&&!_dl;st=early?'PULANG LEBIH AWAL':'PULANG SESUAI JADWAL';a.early=early?1:0;notif('Absensi pulang berhasil.')}
@@ -247,7 +247,9 @@ if(c.locked&&c.lat===EMB.lat&&c.lng===EMB.lng&&c.rad===100&&EMB.rad!==100){c.rad
 if(c.sheetUrl&&!c.sheetLocked)c.sheetLocked=1;if(!c.locked&&(c.lat!==-7.9||c.lng!==113.9))c.locked=1;save()}
 try{const m=location.hash.match(/^#cfg=(.+)$/);if(m){const p=JSON.parse(atob(decodeURIComponent(m[1])));if(!DB.cfg.locked&&isFinite(p.lat)&&isFinite(p.lng)&&p.rad>=10){Object.assign(DB.cfg,{lat:+p.lat,lng:+p.lng,rad:+p.rad,locked:1});if(/^https:\/\/script\.google\.com\/macros\/s\//.test(p.url||'')){DB.cfg.sheetUrl=p.url;DB.cfg.sheetLocked=1}DB.locLog.push({t:new Date().toLocaleString('id'),u:'Tautan konfigurasi',lat:p.lat,lng:p.lng,rad:p.rad,note:'Konfigurasi dipasang dari tautan'});save();toast('Konfigurasi sekolah terpasang & terkunci','ok')}else toast('Perangkat ini sudah terkunci; tautan konfigurasi diabaikan','er');history.replaceState(null,'',location.pathname+location.search)}}catch(e){}
 if(!DB.users.some(u=>u.role=='OPERATOR')){DB.users.push({u:'operator',h:await sha('operator123'),role:'OPERATOR',name:'Operator Sekolah'});save()}}
-async function chPw(){if(await sha(pw0.value)!=ME.h)return toast('Password lama salah','er');if(pw1.value.length<6)return toast('Password baru minimal 6 karakter','er');if(pw1.value!=pw2.value)return toast('Konfirmasi password tidak sama','er');ME.h=await sha(pw1.value);log('Ubah password');save();pw0.value=pw1.value=pw2.value='';toast('Password berhasil diubah','ok')}
+async function chPw(){if(await sha(pw0.value)!=ME.h)return toast('Password lama salah','er');if(pw1.value.length<6)return toast('Password baru minimal 6 karakter','er');if(pw1.value!=pw2.value)return toast('Konfirmasi password tidak sama','er');const nh=await sha(pw1.value);
+if(DB.cfg.sheetUrl){const r=await api('chpw',{nh});if(!r)return toast('Tidak terhubung ke Google Sheets — password belum diubah. Coba lagi saat online.','er');if(!r.ok)return toast('Gagal mengubah password di server'+(r.err?' ('+r.err+')':''),'er')}
+ME.h=nh;log('Ubah password');save();pw0.value=pw1.value=pw2.value='';toast('Password berhasil diubah','ok')}
 function vProf(){const e=meEmp()||{name:ME.name,nip:ME.u,jab:ME.role,st:'-'},t=new Date(),R=rows(e.nip,t.getFullYear(),t.getMonth()),k=x=>R.filter(r=>x(r)).length,my=DB.att.filter(a=>a.nip==e.nip).slice(-10).reverse();
 $('#mn').innerHTML=`<h2>Profil Pegawai</h2><div class="card" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div class="logo" style="margin:0">👤</div><div><b style="font-size:18px">${e.name}</b><br>NIP: ${e.nip}<br>${e.jab} · ${e.st}</div></div><div class="grid"><div class="stat" style="--c:#16a34a"><span>HADIR BULAN INI</span><b>${k(r=>r.a)}</b></div><div class="stat" style="--c:#f59e0b"><span>TERLAMBAT</span><b>${k(r=>r.a?.late)}</b></div><div class="stat" style="--c:#3b82f6"><span>IZIN</span><b>${k(r=>r.l?.type=='I')}</b></div><div class="stat" style="--c:#dc2626"><span>SAKIT</span><b>${k(r=>['S1','CS'].includes(r.l?.type))}</b></div><div class="stat" style="--c:#8b5cf6"><span>CUTI</span><b>${k(r=>/^C\d/.test(r.l?.type))}</b></div></div><br><div class="card"><h3>Riwayat Absensi</h3><div class="tw"><table><tr><th>TANGGAL<th>MASUK<th>PULANG<th>STATUS</tr>${my.map(a=>`<tr><td>${a.d}<td>${a.in}<td>${a.out||'-'}<td><span class="badge ${a.late?'b-y':'b-g'}">${a.late?'TERLAMBAT':'HADIR'}</span></tr>`).join('')||'<tr><td colspan=4 style="color:var(--mu)">Belum ada riwayat.</tr>'}</table></div></div>${pwCard()}`}
 function unlockLoc(){modal(`<h3>🔓 Buka Kunci Titik Lokasi</h3><p style="color:var(--mu)">Setelah dibuka, titik/radius dapat diubah lalu dikunci kembali. Tindakan ini dicatat pada histori.</p><label>Password admin</label><input id="pw" type="password"><label>Alasan / catatan</label><textarea id="nt"></textarea><div class="row"><button class="btn o" onclick="closeM()">Batal</button><button class="btn r" onclick="confUnlock()">Buka Kunci</button></div>`)}
@@ -275,17 +277,19 @@ function rd(n){
   for(var i=1;i<v.length;i++){var o={};h.forEach(function(c,j){o[c]=String(v[i][j]);});r.push(o);}
   return r;}
 function wr(n,rows,mode){
-  var sh=tbl(n),H=DBT[n].h,K=DBT[n].k,idx={};
+  var sh=tbl(n),H=DBT[n].h,K=DBT[n].k,w=H.length,data=[],idx={};
   var key=function(o){return K.map(function(c){return String(o[c]==null?'':o[c]);}).join('|');};
-  if(mode=='replace'){if(sh.getLastRow()>1)sh.getRange(2,1,sh.getLastRow()-1,H.length).clearContent();}
-  else{var cur=sh.getDataRange().getValues();
-    for(var i=1;i<cur.length;i++){var o={};H.forEach(function(c,j){o[c]=String(cur[i][j]);});idx[key(o)]=i+1;}}
-  var add=[];
+  var old=sh.getLastRow()-1;
+  if(mode!='replace'&&old>0){
+    data=sh.getRange(2,1,old,w).getValues().map(function(r){return r.map(function(x){return String(x);});});
+    data.forEach(function(r,i){var o={};H.forEach(function(c,j){o[c]=r[j];});idx[key(o)]=i;});}
   rows.forEach(function(o){
     var v=H.map(function(c){return o[c]==null?'':String(o[c]);}),k=key(o);
-    if(idx[k]>0)sh.getRange(idx[k],1,1,H.length).setValues([v]);
-    else if(idx[k]==null){add.push(v);idx[k]=-1;}});
-  if(add.length)sh.getRange(sh.getLastRow()+1,1,add.length,H.length).setValues(add);}
+    if(idx[k]!=null)data[idx[k]]=v;else{idx[k]=data.length;data.push(v);}});
+  if(data.length){
+    if(sh.getMaxRows()<data.length+1)sh.insertRowsAfter(sh.getMaxRows(),data.length+1-sh.getMaxRows());
+    var rg=sh.getRange(2,1,data.length,w);rg.setNumberFormat('@');rg.setValues(data);}
+  if(old>data.length)sh.getRange(2+data.length,1,old-data.length,w).clearContent();}
 function pull(me){
   var adm=me.role=='ADMIN'||me.role=='OPERATOR',stf=adm||me.role=='KEPALA SEKOLAH',o={};
   ['Akun','GTK','Pengaturan','Presensi','PengajuanIzin'].forEach(function(n){
@@ -297,7 +301,21 @@ function pull(me){
 function push(me,d){
   var t=d.t,rows=d.rows||[],mode=d.mode||'upsert',adm=me.role=='ADMIN'||me.role=='OPERATOR',stf=adm||me.role=='KEPALA SEKOLAH';
   if(!DBT[t])return {err:'tabel'};
-  if(t=='Akun'&&!adm){rows=rows.filter(function(r){return r.u==me.u;}).map(function(r){r.role=me.role;return r;});mode='upsert';}
+  if(t=='Akun'&&mode=='replace'&&!rows.length)return {err:'daftar akun kosong ditolak'};
+  if(t=='Akun'){
+    var cur=rd('Akun'),old={};cur.forEach(function(r){old[r.u]=r;});
+    var fixH=function(r){var o=old[r.u];if(o&&r.rst!='1')r.h=o.h;return r;};
+    if(me.role=='OPERATOR'){
+      // operator hanya boleh menambah/mengubah akun PEGAWAI; akun ADMIN/KEPALA SEKOLAH/OPERATOR (termasuk miliknya) tidak bisa diubah lewat push
+      rows=rows.filter(function(r){return r.role=='PEGAWAI'&&(!old[r.u]||old[r.u].role=='PEGAWAI');}).map(fixH);
+      mode='upsert';}
+    else if(me.role=='ADMIN'){
+      rows=rows.map(fixH);
+      if(mode=='replace'){
+        var have={};rows.forEach(function(r){have[r.u]=1;});
+        cur.forEach(function(r){if(r.role=='PEGAWAI'&&!have[r.u]){rows.push(r);have[r.u]=1;}});
+        if(!rows.some(function(r){return r.role=='ADMIN';}))return {err:'harus ada minimal satu akun ADMIN'};}}
+    else{rows=[];mode='upsert';}}
   else if((t=='GTK'||t=='Pengaturan')&&!adm){
     if(t=='GTK'&&me.role=='PEGAWAI'){
       var ex=null;rd('GTK').forEach(function(r){if(r.nip==me.u)ex=r;});
@@ -323,6 +341,9 @@ function act(d){
     if(d.action=='push'&&d.t=='Akun'&&(d.rows||[]).some(function(r){return r.u==a.u&&r.h==a.h&&r.role=='ADMIN';})){wr('Akun',d.rows,'replace');return {ok:1};}
     return {empty:1};}
   if(!me)return {err:'auth'};
+  if(d.action=='chpw'){
+    if(!/^[0-9a-f]{64}$/.test(String(d.nh||'')))return {err:'format sandi'};
+    wr('Akun',[{u:me.u,h:d.nh,role:me.role,name:me.name}],'upsert');return {ok:1};}
   if(d.action=='login'||d.action=='pull')return {ok:1,user:{u:me.u,role:me.role,name:me.name},data:pull(me)};
   if(d.action=='push')return push(me,d);
   return {err:'aksi'};}
@@ -342,12 +363,14 @@ function legacy(d){
   sh.getRange(r,1,1,row.length).setValues([row]);
   return ContentService.createTextOutput('OK');}
 function doPost(e){
-  var lock=LockService.getScriptLock();lock.waitLock(25000);
+  var lock=LockService.getScriptLock(),got=false;
   try{
+    got=lock.tryLock(28000);
+    if(!got)return out({err:'server sibuk, coba lagi'});
     var d=JSON.parse(e.postData.contents);
     return d.action?out(act(d)):legacy(d);
   }catch(x){return out({err:String(x)});}
-  finally{lock.releaseLock();}
+  finally{if(got)lock.releaseLock();}
 }
 function doGet(){return ContentService.createTextOutput('SIPP aktif');}`;
 function vSheets(){const c=DB.cfg,L=c.sheetLocked;$('#mn').innerHTML=`<h2>Google Sheets — Penyimpanan Absensi</h2><div class="card"><span class="badge ${L?'b-g':c.sheetUrl?'b-y':'b-x'}">${L?'🔒 URL TERKUNCI':c.sheetUrl?'URL TERSIMPAN':'BELUM DIATUR'}</span><br><br><label>URL Web App Google Apps Script (berakhiran /exec)</label><input id="c8" value="${c.sheetUrl||''}" placeholder="https://script.google.com/macros/s/.../exec" ${L?'disabled':''}><div class="row">${L?'<button class="btn r" onclick="unlockSheet()">🔓 Buka Kunci URL</button>':'<button class="btn o" onclick="pasteUrl()">📋 Tempel</button><button class="btn" onclick="saveSheet()">💾 Simpan &amp; Kunci URL</button>'}<button class="btn o" onclick="testSheet()">🧪 Tes Koneksi</button><button class="btn g" onclick="syncAll()">⬆ Kirim Semua Data</button><button class="btn o" onclick="syncNow()">🔄 Sinkron / Tarik Data</button></div><p style="font-size:12px;color:var(--mu)">Setiap absen masuk/pulang masuk ke tab <b>Absensi</b>; pengajuan dan keputusan izin/cuti masuk ke tab <b>Izin</b>. Mengubah URL yang terkunci membutuhkan password admin dan catatan. Pengiriman hanya berjalan jika aplikasi dibuka dari berkas yang diunduh atau hosting sendiri (bukan dari tautan claude.ai).</p></div>
@@ -455,8 +478,8 @@ s+='1 w 50 540 495 90 re S\n'+T('F2',10,70,610,'SANDI BARU')+T('F3',30,70,572,p)
 ['Catatan:','1. Sandi ini rahasia - serahkan langsung kepada pemilik akun.','2. Segera ganti sandi setelah login: menu Profil > Ubah Password.','3. Simpan atau musnahkan dokumen ini dengan aman setelah diserahkan.'].forEach((t,i)=>s+=T(i?'F1':'F2',10,50,505-i*16,t));
 return mkPdf(s)}
 const dlb=(n,b)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click()},
-resetPw=n=>ask('Buat sandi acak baru untuk akun ini? Sandi lama tidak berlaku dan sandi baru diunduh sebagai PDF.',async()=>{const u=DB.users.find(x=>x.u==n);if(!u)return toast('Akun tidak ditemukan','er');const p=rndPw();u.h=await sha(p);log('Reset sandi acak '+n);save();dlb('Sandi_Baru_'+n+'.pdf',akunPdf(u,p));toast('Sandi baru dibuat — PDF diunduh','ok')}),
-resetOp=n=>ask('Buat sandi acak baru untuk operator ini? Sandi baru diunduh sebagai PDF.',async()=>{const u=DB.users.find(x=>x.u==n);if(!u)return;const p=rndPw();u.h=await sha(p);log('Reset sandi acak operator '+n);save();dlb('Sandi_Baru_'+n+'.pdf',akunPdf(u,p));toast('Sandi baru dibuat — PDF diunduh','ok')});
+resetPw=n=>ask('Buat sandi acak baru untuk akun ini? Sandi lama tidak berlaku dan sandi baru diunduh sebagai PDF.',async()=>{const u=DB.users.find(x=>x.u==n);if(!u)return toast('Akun tidak ditemukan','er');const p=rndPw();u.h=await sha(p);u.rst=1;log('Reset sandi acak '+n);save();dlb('Sandi_Baru_'+n+'.pdf',akunPdf(u,p));toast('Sandi baru dibuat — PDF diunduh','ok')}),
+resetOp=n=>ask('Buat sandi acak baru untuk operator ini? Sandi baru diunduh sebagai PDF.',async()=>{const u=DB.users.find(x=>x.u==n);if(!u)return;const p=rndPw();u.h=await sha(p);u.rst=1;log('Reset sandi acak operator '+n);save();dlb('Sandi_Baru_'+n+'.pdf',akunPdf(u,p));toast('Sandi baru dibuat — PDF diunduh','ok')});
 // ---- daftar hadir A4 berwarna
 const sgn=st=>['PNS','PPPK','PPPKPW'].includes(st)?'NIP.':'NIK.';
 function docFor(e,y,m){const c=DB.cfg,t=new Date(),td=ymd(t),bm=MON[m],cap=x=>x.charAt(0)+x.slice(1).toLowerCase(),sm='<small style="display:block;font-size:7px">',
@@ -497,18 +520,19 @@ const FG=()=>`<svg class="frame" viewBox="0 0 300 400" preserveAspectRatio="xMid
 const SK=['faces','data'],ser=o=>{const r={};for(const k in o)if(!SK.includes(k)&&o[k]!==undefined)r[k]=o[k]&&typeof o[k]=='object'?JSON.stringify(o[k]):o[k];return r},
 SYN=()=>{try{return JSON.parse(localStorage.getItem('sipp_syn')||'{}')}catch(e){return{}}};
 const MT=()=>{const c={...DB.cfg};delete c.sheetUrl;delete c.sheetLocked;delete c.sim;return{Akun:DB.users,GTK:DB.emp,Pengaturan:[{k:'cfg',v:c},{k:'locLog',v:DB.locLog}]}};
-let busy=0,tmr,warned=0;
-async function api(action,p={}){const u=DB.cfg.sheetUrl;if(!u)return null;try{const r=await fetch(u,{method:'POST',body:JSON.stringify({action,auth:ME?{u:ME.u,h:ME.h}:{u:p.u,h:p.h},...p})});return await r.json()}catch(e){return null}}
+let busy=0,tmr,warned=0,PULLED=0,busyP=null,LASTERR='';
+async function api(action,p={}){const u=DB.cfg.sheetUrl;if(!u)return null;const ac=new AbortController(),to=setTimeout(()=>ac.abort(),30000);try{const r=await fetch(u,{method:'POST',signal:ac.signal,body:JSON.stringify({action,auth:ME?{u:ME.u,h:ME.h}:{u:p.u,h:p.h},...p})});const j=await r.json();LASTERR=j&&j.err?String(j.err):'';return j}catch(e){LASTERR=e.name=='AbortError'?'waktu habis, koneksi terlalu lambat':'tidak terhubung / respons bukan JSON (cek deployment Apps Script: akses Siapa saja)';return null}finally{clearTimeout(to)}}
 async function pushT(t,rows,mode){for(let i=0;i<Math.max(rows.length,1);i+=150){const r=await api('push',{t,mode:i?'upsert':mode,rows:rows.slice(i,i+150).map(ser)});if(!r||!r.ok)return 0}return 1}
 function qSync(){clearTimeout(tmr);tmr=setTimeout(()=>syncUp(),2500)}
-async function syncUp(force){if(!ME||!DB.cfg.sheetUrl||busy)return 1;busy=1;let ok=1;
-try{const adm=ME.role=='ADMIN'||ME.role=='OPERATOR',S=force?{}:SYN(),M=adm?MT():{Akun:DB.users.filter(u=>u.u==ME.u),...(ME.role=='PEGAWAI'&&meEmp()?{GTK:[meEmp()]}:{})};
-for(const t in M){const j=hs(JSON.stringify(M[t],rep));if(S['_'+t]!==j){if(await pushT(t,M[t],adm?'replace':'upsert'))S['_'+t]=j;else ok=0}}
+async function syncUp(force){if(!ME||!DB.cfg.sheetUrl)return 1;if(busy)return busyP;let fin;busyP=new Promise(r=>fin=r);busy=1;let ok=1;
+try{if(!PULLED&&(ME.role=='ADMIN'||ME.role=='OPERATOR')){const r0=await api('pull');if(r0&&r0.ok){applyPull(r0);PULLED=1}else if(r0&&r0.empty&&ME.role=='ADMIN')PULLED=1;else throw new Error('belum tarik data')}
+const adm=ME.role=='ADMIN'||ME.role=='OPERATOR',S=force?{}:SYN(),M=adm?MT():{Akun:DB.users.filter(u=>u.u==ME.u),...(ME.role=='PEGAWAI'&&meEmp()?{GTK:[meEmp()]}:{})};
+for(const t in M){const j=hs(JSON.stringify(M[t],rep));if(S['_'+t]!==j){if(await pushT(t,M[t],adm?'replace':'upsert')){S['_'+t]=j;if(t=='Akun'&&adm){DB.users.forEach(u=>delete u.rst);S['_Akun']=hs(JSON.stringify(M.Akun,rep));try{localStorage.setItem('ehadir',JSON.stringify(DB,rep))}catch(e){}}}else ok=0}}
 if(adm&&ok)DB.emp.forEach(e=>{if(e.dev=='RESET')e.dev=''});
 for(const[t,L]of[['Presensi',DB.att],['PengajuanIzin',DB.leave]]){const pend=[];L.forEach(o=>{if(ME.role=='PEGAWAI'&&o.nip!=ME.u)return;const s=ser(o),k=t+'|'+o.d+'|'+o.nip+'|'+(o.type||''),j=hs(JSON.stringify(s));if(S[k]!==j)pend.push([k,s,j])});
 if(pend.length){if(await pushT(t,pend.map(p=>p[1]),'upsert'))pend.forEach(p=>S[p[0]]=p[2]);else ok=0}}
 localStorage.setItem('sipp_syn',JSON.stringify(S))}catch(e){ok=0}
-busy=0;if(!ok){if(!warned){warned=1;toast('Sinkron Google Sheets tertunda (offline/URL/izin). Akan dicoba lagi otomatis.','er')}clearTimeout(tmr);tmr=setTimeout(()=>syncUp(),30000)}else warned=0;return ok}
+busy=0;if(!ok){if(!warned){warned=1;toast('Sinkron Google Sheets tertunda'+(LASTERR?' ('+LASTERR+')':'')+'. Akan dicoba lagi otomatis.','er')}clearTimeout(tmr);tmr=setTimeout(()=>syncUp(),30000)}else warned=0;fin(ok);busyP=null;return ok}
 async function pull(){const r=await api('pull');if(!r||!r.ok)return 0;applyPull(r);return 1}
 function applyPull(r){const R=r.user.role,adm=R=='ADMIN'||R=='OPERATOR',stf=adm||R=='KEPALA SEKOLAH',D=r.data,S=SYN();
 const mg=(cur,rows,kf,rp)=>{if(rp)return rows.length?rows:cur;const m=new Map(cur.map(x=>[kf(x),x]));rows.forEach(x=>m.set(kf(x),x));return[...m.values()]};
@@ -522,7 +546,7 @@ DB.leave=mr(DB.leave,D.PengajuanIzin,x=>x.d+'|'+x.nip+'|'+x.type,'PengajuanIzin'
 D.Pengaturan.forEach(p=>{try{const v=JSON.parse(p.v);if(p.k=='cfg'){if(v.lat===EMB.lat&&v.lng===EMB.lng&&v.rad===100)v.rad=EMB.rad;const{sheetUrl,sheetLocked,sim}=DB.cfg;Object.assign(DB.cfg,v,{sheetUrl,sheetLocked,sim},v.locked?{}:{lat:DB.cfg.lat,lng:DB.cfg.lng,rad:DB.cfg.rad,locked:DB.cfg.locked})}else if(p.k=='locLog'&&stf)DB.locLog=v}catch(e){}});
 if(adm){const M=MT();for(const t in M)if(D[t].length)S['_'+t]=hs(JSON.stringify(M[t],rep))}
 localStorage.setItem('sipp_syn',JSON.stringify(S));save()}
-async function syncNow(){if(!DB.cfg.sheetUrl)return toast('URL Google Sheets belum diatur (menu Google Sheets)','er');toast('Menyinkronkan...');if(await syncUp()&&await pull()){go(view);toast('Sinkron selesai','ok')}else toast('Sinkronisasi gagal. Cek koneksi, URL, atau perbarui kode Apps Script.','er')}
+async function syncNow(){if(!DB.cfg.sheetUrl)return toast('URL Google Sheets belum diatur (menu Google Sheets)','er');toast('Menyinkronkan...');if(await syncUp()&&await pull()){go(view);toast('Sinkron selesai','ok')}else toast('Sinkronisasi gagal'+(LASTERR?' ('+LASTERR+')':'')+'. Cek koneksi, URL, atau perbarui kode Apps Script.','er')}
 setInterval(()=>{ME&&syncUp()},120000);
 
 // ================= TAMPILAN HP =================
